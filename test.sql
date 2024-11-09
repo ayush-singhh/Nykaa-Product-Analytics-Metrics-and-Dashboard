@@ -1,5 +1,0 @@
-
-
-
-SELECT TOP (1000) *
-FROM [2019-Oct]
