@@ -60,25 +60,7 @@ GO
 -- Turned the datatype of event_time column from string to DATETIME.
 
 
-
-SELECT user_id, 
-        user_session, 
-        CAST(REPLACE(event_time, ' UTC', '') AS datetime) AS event_time, 
-        event_type,
-        product_id,
-        category_id,
-        brand, 
-        price
-FROM merged_data_view
-
-
-
--- # Handling missing Data
-
-
--- 1. Identifying missing data
-
-WITH cte1 AS (
+(
 SELECT user_id, 
         user_session, 
         CAST(REPLACE(event_time, ' UTC', '') AS datetime) AS event_time, 
@@ -89,17 +71,36 @@ SELECT user_id,
         price
 FROM merged_data_view
 )
-SELECT COUNT(*) As total_rows, 
+
+
+-- # Handling missing Data
+
+
+-- 1. Identifying missing data
+
+WITH cte2 AS (
+SELECT 
+        user_id, 
+        user_session, 
+        CAST(REPLACE(event_time, ' UTC', '') AS datetime) AS event_time, 
+        event_type,
+        product_id,
+        category_id,
+        brand, 
+        price
+FROM merged_data_view
+)
+SELECT 
+        COUNT(*) As total_rows, 
         SUM(CASE WHEN user_id IS NULL or user_id = '' THEN 1 ELSE 0 END) AS missing_user_id,
         SUM(CASE WHEN user_session IS NULL or user_session = '' THEN 1 ELSE 0 END) AS missing_user_session,
-        SUM(CASE WHEN event_time IS NULL or event_time = '' THEN 1 ELSE 0 END) AS missing_event_time,
+        SUM(CASE WHEN event_time IS NULL THEN 1 ELSE 0 END) AS missing_event_time,
         SUM(CASE WHEN event_type IS NULL or event_type = '' THEN 1 ELSE 0 END) AS missing_event_type,
-        SUM(CASE WHEN user_id IS NULL or user_id = '' THEN 1 ELSE 0 END) AS missing_user_id,
         SUM(CASE WHEN product_id IS NULL or product_id = '' THEN 1 ELSE 0 END) AS missing_product_id,
         SUM(CASE WHEN category_id IS NULL or category_id = '' THEN 1 ELSE 0 END) AS missing_category_id, 
         SUM(CASE WHEN brand is NULL or brand = '' THEN 1 ELSE 0 END) AS missing_brand,
-        SUM(CASE WHEN price IS NULL or price = '' THEN 1 ELSE 0 END) AS missing_price
-FROM cte1
+        SUM(CASE WHEN price IS NULL THEN 1 ELSE 0 END) AS missing_price
+FROM cte2
 
 
 
@@ -195,7 +196,7 @@ WHERE length_ != 7
 
 
 GO
-CREATE VIEW cleaned_data_view AS
+CREATE VIEW Nykaa_cleaned_data_view AS
 WITH without_missing_data AS (
 SELECT user_id, 
         user_session, 
