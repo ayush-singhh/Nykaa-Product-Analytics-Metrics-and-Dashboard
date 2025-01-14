@@ -33,7 +33,6 @@ They specifically need insights on:
 
 <details> 
 <summary>
-
 Click here to know the Dataset Details
 	
 </summary>
@@ -83,8 +82,7 @@ This Dashboard will specifically give insights on:
 
 <details> 
 <summary>
-
-* 8-step Data Cleaning Process
+8-step Data Cleaning Process
 	
 </summary>
 <br>
@@ -110,7 +108,6 @@ This Dashboard will specifically give insights on:
 
 <details> 
 <summary>
-
 A comprehensive Dashboard Designing Process
 	
 </summary>
@@ -250,7 +247,7 @@ Interaction depth (actions per session)
 
 ***
 
-## Work in Progress 
+## This Project is Work in Progress 
 
 
 Thanks for visiting my repository 😃🌟
