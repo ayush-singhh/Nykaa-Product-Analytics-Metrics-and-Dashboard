@@ -9,6 +9,8 @@
 -- Reason: This column had too many missing values to be useful for analysis.
 -- 3. Data Type Conversion
 -- Converted event_time from string to DATETIME format for accurate time-based analysis.
+
+
 -- 4. Handling Missing Data
 -- Identified Missing Data: Found missing values in user_session, brand, and price.
 -- Action Taken:
@@ -31,7 +33,7 @@
 
 -- Merging Data from multiple sources
 
-GO
+
 CREATE VIEW merged_data_view AS
 WITH cte1 AS (
         SELECT * FROM [2019-Oct]
@@ -73,6 +75,7 @@ FROM merged_data_view
 )
 
 
+
 -- # Handling missing Data
 
 
@@ -104,7 +107,11 @@ FROM cte2
 
 
 
--- Observation: There are missing values in user_seeion, category_code, price, and brand
+-- missing user_session rows - 4598
+-- missing price rows - 94
+-- missing brand rows - 8,757,117
+
+-- Observation: There are missing values in user_session, price, and brand
 -- Checking if there's any pattern to the missing data to find the root cause behind it.  
 -- There's no pattern to missing data and based on the context we can move to next stage of handling these dataset. 
 
@@ -151,12 +158,16 @@ WHERE user_session != ''
         AND price IS NOT NULL
         AND price > 0 
 ),  without_duplicates AS (
-SELECT *, ROW_NUMBER() OVER(PARTITION BY user_id, user_session, event_time, event_type, product_id, category_id, brand, price ORDER BY user_id ASC) AS rn
+SELECT *, 
+        ROW_NUMBER() OVER(PARTITION BY user_id, user_session, event_time, event_type, product_id, category_id, brand, price ORDER BY user_id ASC) AS rn
 FROM without_missing_data
 )
 SELECT *
 FROM without_duplicates
 WHERE rn = 1
+
+
+
 
 -- Removed over 2,00,000 duplicate records.
 
@@ -192,11 +203,11 @@ FROM merged_data_view
 WHERE length_ != 7
 
 
+
+
 -- Final code with clean data
 
 
-GO
-CREATE VIEW Nykaa_cleaned_data_view AS
 WITH without_missing_data AS (
 SELECT user_id, 
         user_session, 
@@ -224,6 +235,50 @@ SELECT user_id,
         category_id, 
         brand, 
         price
+INTO Nykaa_cleaned_data
 FROM without_duplicates
 WHERE rn = 1
-GO
+
+
+
+
+-- creating index 
+
+CREATE INDEX idx_user_id ON Nykaa_cleaned_data (user_id)
+CREATE INDEX idx_user_session ON Nykaa_cleaned_data (user_session)
+CREATE INDEX idx_event_time ON Nykaa_cleaned_data (event_time)
+
+
+
+-- clean data table space - 2.8 gb 
+-- space of 3 indexes - 2.5 gb
+-- clean data table space with 3 indexes - 5.4 gb
+
+
+-- clean data view runtime - 6.52 min
+-- clean data table runtime - 4.22 min
+-- clean data with 3 index runtime - 3.08 min
+
+
+-- total rows after data cleaning - 19,493,208
+-- total rows before data cleaning - 20,692,840
+
+
+ALTER TABLE Nykaa_cleaned_data
+ADD event_date DATE;
+
+UPDATE Nykaa_cleaned_data
+SET event_date = CAST(event_time as DATE);
+
+
+
+
+
+
+Updating the UTS time to Moscow STANDARD TIME
+
+Price FLOAT to decimal 100, 2
+
+
+
+
